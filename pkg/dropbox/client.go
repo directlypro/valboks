@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files"
+	"io"
+	"os"
+	"strings"
 )
 
 type Client struct {
@@ -55,6 +58,7 @@ func (c *Client) ListFolder(path string) ([]FileInfo, error) {
 	return fileInfos, nil
 }
 
+//processEntries converts Dropbox API entries to FileInfo structs
 func (c *Client) processEntries(entries []files.IsMetadata) []FileInfo {
 	var fileInfos []FileInfo
 
@@ -78,4 +82,106 @@ func (c *Client) processEntries(entries []files.IsMetadata) []FileInfo {
 	}
 
 	return fileInfos
+}
+
+//downloading file from dropbox to local path
+func (c *Client) DownloadFile(dropboxPath, localPath string) error {
+
+	dropboxPath = normalizePath(dropboxPath)
+
+	downloadArg := files.NewDownloadArg(dropboxPath)
+	_, content, err := c.filesClient.Download(downloadArg)
+	if err != nil {
+		return fmt.Errorf("failed to download file '%s': %w", dropboxPath, err)
+	}
+	defer content.Close()
+
+	outFile, err := os.Create(localPath)
+	if err != nil {
+		return fmt.Errorf("failed to create local file '%s': %w", localPath, err)
+	}
+	defer  outFile.Close()
+
+	//Copy content to file
+	_, err = io.Copy(outFile, content)
+	if err != nil {
+		return fmt.Errorf("failed to write file content: '%w'", err)
+	}
+
+	return nil
+}
+
+
+func (c *Client) UploadFile(localPath, dropboxPath string, overwrite bool) error {
+
+	dropboxPath = normalizePath(dropboxPath)
+
+	file, err := os.Open(localPath)
+	if err != nil {
+		return fmt.Errorf("failed to open local file '%s': %w", localPath, err)
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to get the file info: %w", err)
+	}
+
+	commitInfo := files.NewCommitInfo(dropboxPath)
+	if overwrite {
+		commitInfo.Mode = &files.WriteMode{Tagged: dropbox.Tagged{Tag: "overwrite"}}
+	}
+
+	if fileInfo.Size() < 150*1024*1024 {
+		_, err = c.filesClient.Upload(commitInfo, file)
+		if err != nil {
+			return fmt.Errorf("failed to upload file '%s': %w", localPath, err)
+		}
+	} else {
+		return fmt.Errorf("files lager than 150MB are not supported in this version")
+	}
+
+	return nil
+}
+
+func (c * Client) DeletePath(path string) error {
+
+	path = normalizePath(path)
+
+	deleteArg := files.NewDeleteArg(path)
+	_, err := c.filesClient.DeleteV2(deleteArg)
+	if err != nil {
+		return fmt.Errorf("failed to delete '%s': %w". path, err)
+	}
+
+	return nil
+}
+
+func (c *Client) CreateFolder(path string) error {
+
+	path = normalizePath(path)
+
+	createArg := files.NewCreateFolderArg(path)
+	_, err := c.filesClient.CreateFolderV2(createArg)
+	if err != nil {
+		return fmt.Errorf("failed to create a folder '%s': %w", path, err)
+	}
+
+	return nil
+}
+
+func normalizePath(path string) string {
+	if path == "" || path == "." {
+		return ""
+	}
+
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+
+	if path == "/" {
+		return ""
+	}
+
+	return path
 }
