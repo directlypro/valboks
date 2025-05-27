@@ -43,7 +43,7 @@ func (c *Client) ListFolder(path string) ([]FileInfo, error) {
 
 	var fileInfos []FileInfo
 
-	fileInfos = append(fileInfos, c.processEntries(result.Entries))
+	fileInfos = append(fileInfos, c.processEntries(result.Entries)...)
 
 	for result.HasMore {
 		continueArg := files.NewListFolderContinueArg(result.Cursor)
@@ -52,7 +52,7 @@ func (c *Client) ListFolder(path string) ([]FileInfo, error) {
 			return nil, fmt.Errorf("failed to continue listing folder: %w", err)
 		}
 
-		fileInfos = append(fileInfos, c.processEntries(result.Entries))
+		fileInfos = append(fileInfos, c.processEntries(result.Entries)...)
 	}
 
 	return fileInfos, nil
@@ -132,8 +132,10 @@ func (c *Client) UploadFile(localPath, dropboxPath string, overwrite bool) error
 		commitInfo.Mode = &files.WriteMode{Tagged: dropbox.Tagged{Tag: "overwrite"}}
 	}
 
+	uploadArg := files.NewUploadArg(commitInfo.Path)
+
 	if fileInfo.Size() < 150*1024*1024 {
-		_, err = c.filesClient.Upload(commitInfo, file)
+		_, err = c.filesClient.Upload(uploadArg, file)
 		if err != nil {
 			return fmt.Errorf("failed to upload file '%s': %w", localPath, err)
 		}
@@ -151,7 +153,7 @@ func (c * Client) DeletePath(path string) error {
 	deleteArg := files.NewDeleteArg(path)
 	_, err := c.filesClient.DeleteV2(deleteArg)
 	if err != nil {
-		return fmt.Errorf("failed to delete '%s': %w". path, err)
+		return fmt.Errorf("failed to delete '%s': %w", path, err)
 	}
 
 	return nil
@@ -167,6 +169,44 @@ func (c *Client) CreateFolder(path string) error {
 		return fmt.Errorf("failed to create a folder '%s': %w", path, err)
 	}
 
+	return nil
+}
+
+func (c *Client) GetFileInfo(path string) (*FileInfo, error) {
+
+	path = normalizePath(path)
+
+	getMetadataArg := files.NewGetMetadataArg(path)
+	metadata, err := c.filesClient.GetMetadata(getMetadataArg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get metadata for '%s': %w", path, err)
+	}
+
+	switch m := metadata.(type) {
+	case *files.FolderMetadata:
+		return &FileInfo{
+			m.Name,
+			m.PathLower,
+			true,
+			0,
+		}, nil
+	case *files.FileMetadata:
+		return &FileInfo{
+			m.Name,
+			m.PathLower,
+			false,
+			m.Size,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unknown metadata type for '%s'", path)
+	}
+}
+
+func (c *Client) TestConnection() error {
+	_, err := c.GetFileInfo("/")
+	if err != nil {
+		return fmt.Errorf("connection test failed: %w", err)
+	}
 	return nil
 }
 

@@ -8,6 +8,15 @@ github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files
 # github.com/golang/protobuf v1.4.2
 ## explicit; go 1.9
 github.com/golang/protobuf/proto
+# github.com/inconshreveable/mousetrap v1.1.0
+## explicit; go 1.18
+github.com/inconshreveable/mousetrap
+# github.com/spf13/cobra v1.9.1
+## explicit; go 1.15
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.6
+## explicit; go 1.12
+github.com/spf13/pflag
 # golang.org/x/net v0.0.0-20200822124328-c89045814202
 ## explicit; go 1.11
 golang.org/x/net/context
