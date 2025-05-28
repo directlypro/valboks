@@ -72,3 +72,62 @@
 
 	return cmd
 }
+
+func newListCommand() *cobra.Command {
+
+	var longFormat bool
+
+	cmd := &cobra.Command{
+		Use: "ls [path]",
+		Aliases: []string{"list"},
+		Short: "List files and folders",
+		Long:  `List files and folders in the specified Dropbox path.`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !configManager.IsConfigured() {
+				return fmt.Errorf("not authenticated - run 'auth' command first")
+			}
+
+			path := "/"
+			if len(args) > 0 {
+				path = args[0]
+			}
+
+			printVerbose(cmd, "Listing contents of: %s", path)
+
+			client := dropbox.NewClient(configManager.GetConfig().AccessToken)
+			fileInfos, err := client.ListFolder(path)
+			if err != nil {
+				return err
+			}
+
+			if len(fileInfos) == 0 {
+				fmt.Println("📂 Empty folder")
+				return nil
+			}
+
+			printVerbose(cmd, "Found %d items", len(fileInfos))
+
+			for _, info := range fileInfos {
+				if longFormat {
+					if info.IsFolder {
+						fmt.Printf("📁 %-30s <DIR>\n", info.Name)
+					} else {
+						fmt.Printf("📁 %-30s %d bytes\n", info.Name, info.Size)
+					}
+				} else {
+					if info.IsFolder {
+						fmt.Printf("📁 %s\n", info.Name)
+					} else {
+						fmt.Printf("📁 %s\n", info.Name)
+					}
+				}
+			}
+			return nil
+		},
+	}
+
+	cmd.Flags().BoolVarP(&longFormat, "long", "l", false, "Use long listing format")
+
+	return cmd
+}
