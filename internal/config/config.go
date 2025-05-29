@@ -72,6 +72,10 @@ func (m *ConfigManager) Save() error {
 	return nil
 }
 
+func (m *ConfigManager) GetConfig() *Config {
+	return m.config
+}
+
 func (m *ConfigManager) SetCredentials(appKey, appSecret, accessToken string) {
 	m.config.AppKey = appKey
 	m.config.AppSecret = appSecret
