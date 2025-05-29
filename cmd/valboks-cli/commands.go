@@ -142,7 +142,7 @@ func newUploadCommand() *cobra.Command {
 		Short: "Upload a file to Dropbox",
 		Long: `Upload a file from your local filesystem to Dropbox.`,
 		Args: cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, arg []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if !configManager.IsConfigured() {
 				return fmt.Errorf("not authenticated - run 'auth' command first")
 			}

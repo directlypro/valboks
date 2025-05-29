@@ -40,10 +40,10 @@ func main() {
 
 	rootCmd.AddCommand(newAuthCommand())
 	rootCmd.AddCommand(newListCommand())
-	rootCmd.AddCommand(newDownloadCommand())
+//	rootCmd.AddCommand(newDownloadCommand()) // Due to vibe coding this is not complete
 	rootCmd.AddCommand(newUploadCommand())
 	rootCmd.AddCommand(newDeleteCommand())
-	rootCmd.AddCommand(newMkdirCommand())
+//	rootCmd.AddCommand(newMkdirCommand()) // Due to vibe coding this is not complete
 	rootCmd.AddCommand(newInfoCommand())
 
 	if err := rootCmd.Execute(); err != nil {
