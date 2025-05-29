@@ -3,6 +3,7 @@
  import (
 	 "fmt"
 	 "github.com/spf13/cobra"
+	 "os"
 	 "strings"
 	 "valboks/pkg/dropbox"
  )
@@ -128,6 +129,94 @@ func newListCommand() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVarP(&longFormat, "long", "l", false, "Use long listing format")
+
+	return cmd
+}
+
+func newUploadCommand() *cobra.Command {
+	var overwrite bool
+
+	cmd := &cobra.Command{
+		Use: "put [local_path] [dropbox_path]",
+		Aliases: []string{"upload"},
+		Short: "Upload a file to Dropbox",
+		Long: `Upload a file from your local filesystem to Dropbox.`,
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, arg []string) error {
+			if !configManager.IsConfigured() {
+				return fmt.Errorf("not authenticated - run 'auth' command first")
+			}
+
+			localPath := args[0]
+			dropboxPath := args[1]
+
+			//Check if local file exists
+			if _, err := os.Stat(localPath); os.IsNotExist(err) {
+				return fmt.Errorf("local file '%s' does not exist", localPath)
+			}
+
+			printVerbose(cmd, "Uploading %s to %s (overwrite: %v)", localPath, dropboxPath, overwrite)
+
+			client := dropbox.NewClient(configManager.GetConfig().AccessToken)
+			err := client.UploadFile(localPath, dropboxPath, overwrite)
+			if err != nil {
+				fmt.Errorf("Failed to up load the file to dropbox")
+				return err
+			}
+
+			fmt.Printf("✅ Uploaded '%s' to '%s'\n", localPath, dropboxPath)
+			return nil
+		},
+	}
+
+
+	cmd.Flags().BoolVar(&overwrite, "overwrite", false, "Overwrite existing files")
+
+	return cmd
+}
+
+func newDeleteCommand() *cobra.Command {
+	var force bool
+
+	cmd := &cobra.Command{
+		Use: "rm [path]",
+		Aliases: []string{"delete"},
+		Short: "Delete a file or folder",
+		Long: `Delete a file or folder from Dropbox.`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !configManager.IsConfigured() {
+				return fmt.Errorf("not authenticated - run 'auth' command first")
+			}
+
+			path := args[0]
+
+			if !force {
+				fmt.Printf("Are you sure you want to delete '%s'?, (Y/N): ", path)
+				var response string
+
+				fmt.Scanln(&response)
+				if strings.ToLower(response) != "Y" && strings.ToLower(response) != "yes" {
+					fmt.Println("Deletion cancelled")
+					return nil
+				}
+			}
+
+			printVerbose(cmd, "Deleting: %s", path)
+
+			client := dropbox.NewClient(configManager.GetConfig().AccessToken)
+			err := client.DeletePath(path)
+			if err != nil {
+				fmt.Errorf("failed to delete the file")
+				return nil
+			}
+
+			fmt.Printf("✅ Deleted '%s'\n", path)
+			return nil
+		},
+	}
+
+	cmd.Flags().BoolVarP(&force, "force", "f", false, "Force deletion without confirmation")
 
 	return cmd
 }
