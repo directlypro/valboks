@@ -220,3 +220,42 @@ func newDeleteCommand() *cobra.Command {
 
 	return cmd
 }
+
+func newInfoCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "info [path]",
+		Short: "Get information about a file or folder",
+		Long: `Get detailed information about a file or folder in Dropbox,`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !configManager.IsConfigured() {
+				return fmt.Errorf("not authenticated - run 'auth' command first")
+			}
+
+			path := args[0]
+
+			printVerbose(cmd, "Getting info for: %s", path)
+
+			client := dropbox.NewClient(configManager.GetConfig().AccessToken)
+			info, err := client.GetFileInfo(path)
+			if err != nil {
+				fmt.Errorf("failed to get the file Info: %+v", err)
+				return err
+			}
+
+			fmt.Printf("📋 Information for '%s'\n", path)
+			fmt.Printf("	Name: %s\n", info.Name)
+			fmt.Printf("	Path: %s\n", info.Path)
+			if info.IsFolder {
+				fmt.Printf("	Type: Folder\n")
+			} else {
+				fmt.Printf("	Type: File\n")
+				fmt.Printf("	Size: %d bytes\n", info.Size)
+			}
+
+			return nil
+		},
+	}
+
+	return cmd
+}
