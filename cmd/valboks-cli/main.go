@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"os"
 	"valboks/internal/config"
-	"github.com/spf13/cobra"
 )
 
 var (
 	configManager *config.ConfigManager
-	version = "1.0.0"
-	commit = "dev"
-	date = "2025-06-20"
+	version       = "1.0.0"
+	commit        = "dev"
+	date          = "2025-06-20"
 )
 
 func main() {
@@ -30,9 +30,12 @@ func main() {
 	}
 
 	rootCmd := &cobra.Command{
-		Use: "valboks-cli",
+		Use:   "valboks-cli",
 		Short: "Custom Dropbox CLI tool",
-		Long: "TBA",
+		Long: `A custom command-line interface tool for accessing Dropbox.
+		
+This tool provides essential Dropbox operations like listing files,
+uploading, downloading, and managing your Dropbox account from the terminal.`,
 		Version: fmt.Sprintf("%s (commit: %s, built: %s)", version, commit, date),
 	}
 
@@ -40,10 +43,10 @@ func main() {
 
 	rootCmd.AddCommand(newAuthCommand())
 	rootCmd.AddCommand(newListCommand())
-//	rootCmd.AddCommand(newDownloadCommand()) // Due to vibe coding this is not complete
+	//	rootCmd.AddCommand(newDownloadCommand()) // Due to vibe coding this is not complete
 	rootCmd.AddCommand(newUploadCommand())
 	rootCmd.AddCommand(newDeleteCommand())
-//	rootCmd.AddCommand(newMkdirCommand()) // Due to vibe coding this is not complete
+	//	rootCmd.AddCommand(newMkdirCommand()) // Due to vibe coding this is not complete
 	rootCmd.AddCommand(newInfoCommand())
 
 	if err := rootCmd.Execute(); err != nil {
