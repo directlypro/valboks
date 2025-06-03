@@ -1,21 +1,21 @@
- package main
+package main
 
- import (
-	 "fmt"
-	 "github.com/spf13/cobra"
-	 "os"
-	 "strings"
-	 "valboks/pkg/dropbox"
- )
+import (
+	"fmt"
+	"github.com/spf13/cobra"
+	"os"
+	"strings"
+	"valboks/pkg/dropbox"
+)
 
- func newAuthCommand() *cobra.Command {
+func newAuthCommand() *cobra.Command {
 	var appKey, appSecret string
 
 	cmd := &cobra.Command{
-		Use: "auth",
+		Use:   "auth",
 		Short: "Authenticat with Dropbox",
-		Long: "TBA",
-		RunE: func(cmd * cobra.Command, args []string) error {
+		Long:  "TBA",
+		RunE: func(cmd *cobra.Command, args []string) error {
 			printVerbose(cmd, "Starting authentication process")
 
 			if appKey == "" || appSecret == "" {
@@ -26,7 +26,7 @@
 			fmt.Println("=========================")
 			fmt.Printf("App Key: %s\n", appKey)
 			fmt.Println()
-			fmt.Println("To complete authetication:")
+			fmt.Println("To complete authentication:")
 			fmt.Println("1. Visit https://www.dropbox.com/developers/apps")
 			fmt.Println("2. Find your app and go to the 'Settings' tab")
 			fmt.Println("3. Generate an access token")
@@ -39,6 +39,8 @@
 			if err != nil {
 				return fmt.Errorf("error reading access token: %w", err)
 			}
+
+			fmt.Printf("Access token: %s\n", accessToken)
 
 			accessToken = strings.TrimSpace(accessToken)
 			if accessToken == "" {
@@ -61,7 +63,7 @@
 			}
 
 			fmt.Println("✅ Authentication successful!")
-			printVerbose(cmd, "Configuration saved succefully")
+			printVerbose(cmd, "Configuration saved successfully")
 			return nil
 		},
 	}
@@ -79,11 +81,11 @@ func newListCommand() *cobra.Command {
 	var longFormat bool
 
 	cmd := &cobra.Command{
-		Use: "ls [path]",
+		Use:     "ls [path]",
 		Aliases: []string{"list"},
-		Short: "List files and folders",
-		Long:  `List files and folders in the specified Dropbox path.`,
-		Args: cobra.MaximumNArgs(1),
+		Short:   "List files and folders",
+		Long:    `List files and folders in the specified Dropbox path.`,
+		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !configManager.IsConfigured() {
 				return fmt.Errorf("not authenticated - run 'auth' command first")
@@ -137,11 +139,11 @@ func newUploadCommand() *cobra.Command {
 	var overwrite bool
 
 	cmd := &cobra.Command{
-		Use: "put [local_path] [dropbox_path]",
+		Use:     "put [local_path] [dropbox_path]",
 		Aliases: []string{"upload"},
-		Short: "Upload a file to Dropbox",
-		Long: `Upload a file from your local filesystem to Dropbox.`,
-		Args: cobra.ExactArgs(2),
+		Short:   "Upload a file to Dropbox",
+		Long:    `Upload a file from your local filesystem to Dropbox.`,
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !configManager.IsConfigured() {
 				return fmt.Errorf("not authenticated - run 'auth' command first")
@@ -169,7 +171,6 @@ func newUploadCommand() *cobra.Command {
 		},
 	}
 
-
 	cmd.Flags().BoolVar(&overwrite, "overwrite", false, "Overwrite existing files")
 
 	return cmd
@@ -179,11 +180,11 @@ func newDeleteCommand() *cobra.Command {
 	var force bool
 
 	cmd := &cobra.Command{
-		Use: "rm [path]",
+		Use:     "rm [path]",
 		Aliases: []string{"delete"},
-		Short: "Delete a file or folder",
-		Long: `Delete a file or folder from Dropbox.`,
-		Args: cobra.ExactArgs(1),
+		Short:   "Delete a file or folder",
+		Long:    `Delete a file or folder from Dropbox.`,
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !configManager.IsConfigured() {
 				return fmt.Errorf("not authenticated - run 'auth' command first")
@@ -223,10 +224,10 @@ func newDeleteCommand() *cobra.Command {
 
 func newInfoCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "info [path]",
+		Use:   "info [path]",
 		Short: "Get information about a file or folder",
-		Long: `Get detailed information about a file or folder in Dropbox,`,
-		Args: cobra.ExactArgs(1),
+		Long:  `Get detailed information about a file or folder in Dropbox,`,
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !configManager.IsConfigured() {
 				return fmt.Errorf("not authenticated - run 'auth' command first")
