@@ -62,7 +62,7 @@ func newAuthCommand() *cobra.Command {
 				return fmt.Errorf("error saving configuration: %w", err)
 			}
 
-			fmt.Println("✅ Authentication successful")
+			fmt.Println("✅ Authentication successful!")
 			printVerbose(cmd, "Configuration saved successfully")
 			return nil
 		},
