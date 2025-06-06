@@ -162,7 +162,7 @@ func newUploadCommand() *cobra.Command {
 			client := dropbox.NewClient(configManager.GetConfig().AccessToken)
 			err := client.UploadFile(localPath, dropboxPath, overwrite)
 			if err != nil {
-				fmt.Errorf("failed to up load the file to dropbox, err: %v", err)
+				_ = fmt.Errorf("failed to up load the file to dropbox, err: %v", err)
 				return err
 			}
 
@@ -208,7 +208,7 @@ func newDeleteCommand() *cobra.Command {
 			client := dropbox.NewClient(configManager.GetConfig().AccessToken)
 			err := client.DeletePath(path)
 			if err != nil {
-				fmt.Errorf("failed to delete the file")
+				_ = fmt.Errorf("failed to delete the file")
 				return nil
 			}
 
