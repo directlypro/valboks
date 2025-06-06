@@ -162,7 +162,7 @@ func newUploadCommand() *cobra.Command {
 			client := dropbox.NewClient(configManager.GetConfig().AccessToken)
 			err := client.UploadFile(localPath, dropboxPath, overwrite)
 			if err != nil {
-				fmt.Errorf("Failed to up load the file to dropbox")
+				fmt.Errorf("failed to up load the file to dropbox, err: %v", err)
 				return err
 			}
 
