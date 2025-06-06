@@ -8,22 +8,22 @@ import (
 )
 
 type Config struct {
-	AppKey string `json:"app_key"`
-	AppSecret string `json:"app_secret"`
-	AccessToken string `json:"access_token"`
+	AppKey       string `json:"app_key"`
+	AppSecret    string `json:"app_secret"`
+	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
-//this handles loading and saving file configs
+// ConfigManager this handles loading and saving file configurations
 type ConfigManager struct {
 	configPath string
-	config *Config
+	config     *Config
 }
 
 func NewConfigManager() (*ConfigManager, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return nil, fmt.Errorf("Error getting home directory: %w", err)
+		return nil, fmt.Errorf("error getting home directory: %w", err)
 	}
 
 	configDir := filepath.Join(homeDir, ".config", "valboks-cli")
@@ -36,7 +36,7 @@ func NewConfigManager() (*ConfigManager, error) {
 
 	return &ConfigManager{
 		configPath: configPath,
-		config: &Config{},
+		config:     &Config{},
 	}, nil
 }
 
